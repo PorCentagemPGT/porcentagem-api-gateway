@@ -102,4 +102,19 @@ export class AuthService {
       throw new InternalServerErrorException('Error during sign in');
     }
   }
+
+  async validateToken(auth: string): Promise<{ valid: boolean }> {
+    this.logger.log('Token validation request started');
+
+    try {
+      await this.authApiService.validateToken(auth);
+      this.logger.log('Token validation successful');
+      return { valid: true };
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.log(`Token validation failed: ${errorMessage}`);
+      return { valid: false };
+    }
+  }
 }

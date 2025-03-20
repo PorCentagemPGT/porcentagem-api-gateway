@@ -36,4 +36,12 @@ export class AuthApiService {
       throw error;
     }
   }
+
+  async validateToken(auth: string): Promise<void> {
+    await this.httpService.axiosRef.get(`${this.authApiUrl}/auth/validate`, {
+      headers: {
+        Authorization: auth,
+      },
+    });
+  }
 }

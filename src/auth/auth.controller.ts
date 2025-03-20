@@ -1,10 +1,11 @@
-import { Body, Controller, Post, Logger } from '@nestjs/common';
+import { Body, Controller, Post, Get, Logger, Headers } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiHeader,
 } from '@nestjs/swagger';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
@@ -59,5 +60,28 @@ Notes:
   })
   async signIn(@Body() dto: SignInDto): Promise<AuthResponseDto> {
     return this.authService.signIn(dto);
+  }
+
+  @Get('validate')
+  @ApiOperation({
+    summary: 'Validate current session',
+    description: 'Validates if the current access token is valid and active',
+  })
+  @ApiHeader({
+    name: 'Authorization',
+    description: 'Bearer token',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token is valid',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired token',
+  })
+  async validateToken(
+    @Headers('authorization') auth: string,
+  ): Promise<{ valid: boolean }> {
+    return await this.authService.validateToken(auth);
   }
 }
