@@ -23,7 +23,6 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
 
 # Prisma Client gerado e dependências já estão prontos
 # (não precisa rodar npm install novamente)
