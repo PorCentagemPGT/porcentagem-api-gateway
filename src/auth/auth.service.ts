@@ -92,6 +92,7 @@ export class AuthService {
         },
       };
     } catch (error: unknown) {
+      this.logger.error(error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(
