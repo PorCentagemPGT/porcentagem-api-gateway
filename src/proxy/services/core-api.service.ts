@@ -41,8 +41,8 @@ export class CoreApiService {
     this.logger.log(`Get user request started - email: ${email}`);
 
     try {
+      this.logger.debug(`CoreApiUrl: ${this.coreApiUrl}`);
       const response = await firstValueFrom(
-        this.logger.debug(`CoreApiUrl: ${this.coreApiUrl}`);
         this.httpService.get(`${this.coreApiUrl}/users/email/${email}`),
       );
 
