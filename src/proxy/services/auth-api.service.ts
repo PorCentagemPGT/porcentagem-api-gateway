@@ -29,6 +29,10 @@ export class AuthApiService {
       this.logger.log(`Login request completed - userId: ${userId}`);
       return response.data;
     } catch (error: unknown) {
+      this.logger.error(
+        `Login request failed - userId: ${userId}, error:`,
+        error,
+      );
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(
