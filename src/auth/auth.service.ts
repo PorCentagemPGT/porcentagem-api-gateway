@@ -66,12 +66,8 @@ export class AuthService {
     this.logger.log(`Sign in request started - email: ${dto.email}`);
 
     try {
-      // 1. Buscar e validar usuário no core-api
-      const user = await this.coreApiService.getUserByEmail(dto.email);
-
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
+      // 1. Validar credenciais no core-api
+      const user = await this.coreApiService.validateCredentials(dto);
 
       // 2. Realizar login no auth-api
       const auth = await this.authApiService.login(user.id);
@@ -82,8 +78,8 @@ export class AuthService {
       return {
         user: {
           id: user.id,
-          name: user.name,
           email: user.email,
+          name: user.name,
         },
         tokens: {
           accessToken: auth.accessToken,
@@ -91,16 +87,8 @@ export class AuthService {
           expiresIn: auth.expiresIn,
         },
       };
-    } catch (error: unknown) {
-      this.logger.error(
-        `Sign in request failed inside auth.service - error:`,
-        error,
-      );
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error(
-        `Sign in request failed - email: ${dto.email}, error: ${errorMessage}`,
-      );
+    } catch (error) {
+      this.logger.error(`Sign in request failed - email: ${dto.email}`, error);
 
       if (error instanceof UnauthorizedException) {
         throw error;
