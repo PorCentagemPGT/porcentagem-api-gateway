@@ -11,16 +11,12 @@ type HttpConfig = Omit<AxiosRequestConfig, 'method' | 'url' | 'data'>;
 export class BelvoProxy {
   private readonly logger = new Logger(BelvoProxy.name);
   private readonly apiUrl: string;
-  private readonly secretId: string;
-  private readonly secretPassword: string;
 
   constructor(
     private readonly http: HttpService,
     private readonly config: ConfigService,
   ) {
     this.apiUrl = this.config.getOrThrow('BELVO_API_URL');
-    this.secretId = this.config.getOrThrow('BELVO_SECRET_ID');
-    this.secretPassword = this.config.getOrThrow('BELVO_SECRET_PASSWORD');
   }
 
   /**
@@ -34,7 +30,7 @@ export class BelvoProxy {
     data?: unknown,
     config?: HttpConfig,
   ): Promise<BelvoResponse<T>> {
-    return this.forward<T>('GET', path, data, this.addAuth(config));
+    return this.forward<T>('GET', path, data, config);
   }
 
   /**
@@ -48,7 +44,7 @@ export class BelvoProxy {
     data: unknown,
     config?: HttpConfig,
   ): Promise<BelvoResponse<T>> {
-    return this.forward<T>('POST', path, data, this.addAuth(config));
+    return this.forward<T>('POST', path, data, config);
   }
 
   /**
@@ -62,7 +58,7 @@ export class BelvoProxy {
     data: unknown,
     config?: HttpConfig,
   ): Promise<BelvoResponse<T>> {
-    return this.forward<T>('PUT', path, data, this.addAuth(config));
+    return this.forward<T>('PUT', path, data, config);
   }
 
   /**
@@ -74,7 +70,7 @@ export class BelvoProxy {
     path: string,
     config?: HttpConfig,
   ): Promise<BelvoResponse<T>> {
-    return this.forward<T>('DELETE', path, undefined, this.addAuth(config));
+    return this.forward<T>('DELETE', path, undefined, config);
   }
 
   /**
@@ -88,23 +84,7 @@ export class BelvoProxy {
     data: unknown,
     config?: HttpConfig,
   ): Promise<BelvoResponse<T>> {
-    return this.forward<T>('PATCH', path, data, this.addAuth(config));
-  }
-
-  /**
-   * Adiciona autenticação básica às configurações do Axios
-   * @private método utilitário para adicionar credenciais
-   */
-  private addAuth(config?: HttpConfig): HttpConfig {
-    const auth = {
-      username: this.secretId,
-      password: this.secretPassword,
-    };
-
-    return {
-      ...config,
-      auth,
-    };
+    return this.forward<T>('PATCH', path, data, config);
   }
 
   /**

@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProxyModule } from './proxy/proxy.module';
+import { CoreModule } from './modules/core/core.module';
 import appConfig from './config/app.config';
 
 @Module({
@@ -12,6 +13,7 @@ import appConfig from './config/app.config';
       load: [appConfig],
     }),
     ProxyModule,
+    CoreModule,
   ],
   controllers: [AppController],
   providers: [AppService],
