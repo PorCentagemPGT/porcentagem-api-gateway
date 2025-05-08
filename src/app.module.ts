@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProxyModule } from './proxy/proxy.module';
 import { CoreModule } from './modules/core/core.module';
+import { AuthModule } from './modules/auth/auth.module';
 import appConfig from './config/app.config';
 
 @Module({
@@ -14,6 +15,7 @@ import appConfig from './config/app.config';
     }),
     ProxyModule,
     CoreModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

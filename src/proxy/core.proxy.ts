@@ -3,7 +3,6 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { AxiosError, AxiosRequestConfig } from 'axios';
-import { CoreResponse } from './interfaces/core-api.interface';
 
 type HttpConfig = Omit<AxiosRequestConfig, 'method' | 'url' | 'data'>;
 
@@ -25,11 +24,7 @@ export class CoreProxy {
    * @param data - Dados opcionais para o body da requisição
    * @param config - Configurações adicionais do Axios
    */
-  async get<T>(
-    path: string,
-    data?: unknown,
-    config?: HttpConfig,
-  ): Promise<CoreResponse<T>> {
+  async get<T>(path: string, data?: unknown, config?: HttpConfig): Promise<T> {
     return this.forward<T>('GET', path, data, config);
   }
 
@@ -39,11 +34,7 @@ export class CoreProxy {
    * @param data - Dados para criar o recurso
    * @param config - Configurações adicionais do Axios
    */
-  async post<T>(
-    path: string,
-    data: unknown,
-    config?: HttpConfig,
-  ): Promise<CoreResponse<T>> {
+  async post<T>(path: string, data: unknown, config?: HttpConfig): Promise<T> {
     return this.forward<T>('POST', path, data, config);
   }
 
@@ -53,11 +44,7 @@ export class CoreProxy {
    * @param data - Dados para atualizar o recurso
    * @param config - Configurações adicionais do Axios
    */
-  async put<T>(
-    path: string,
-    data: unknown,
-    config?: HttpConfig,
-  ): Promise<CoreResponse<T>> {
+  async put<T>(path: string, data: unknown, config?: HttpConfig): Promise<T> {
     return this.forward<T>('PUT', path, data, config);
   }
 
@@ -66,7 +53,7 @@ export class CoreProxy {
    * @param path - Caminho da API (sem a URL base)
    * @param config - Configurações adicionais do Axios
    */
-  async delete<T>(path: string, config?: HttpConfig): Promise<CoreResponse<T>> {
+  async delete<T>(path: string, config?: HttpConfig): Promise<T> {
     return this.forward<T>('DELETE', path, undefined, config);
   }
 
@@ -76,11 +63,7 @@ export class CoreProxy {
    * @param data - Dados para atualizar o recurso
    * @param config - Configurações adicionais do Axios
    */
-  async patch<T>(
-    path: string,
-    data: unknown,
-    config?: HttpConfig,
-  ): Promise<CoreResponse<T>> {
+  async patch<T>(path: string, data: unknown, config?: HttpConfig): Promise<T> {
     return this.forward<T>('PATCH', path, data, config);
   }
 
@@ -93,10 +76,10 @@ export class CoreProxy {
     path: string,
     data?: unknown,
     config?: HttpConfig,
-  ): Promise<CoreResponse<T>> {
+  ): Promise<T> {
     try {
       const { data: response } = await firstValueFrom(
-        this.http.request<CoreResponse<T>>({
+        this.http.request<T>({
           method,
           url: `${this.apiUrl}${path}`,
           data,

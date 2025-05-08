@@ -1,20 +1,14 @@
-export interface CoreUser {
+export interface CoreUserResponse {
   id: string;
   name: string;
   email: string;
+  password: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CoreCategory {
-  id: number;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type CoreResponse<T> = {
+export interface CoreResponse<T> {
   data: T;
   statusCode?: number;
   message?: string;
-};
+}

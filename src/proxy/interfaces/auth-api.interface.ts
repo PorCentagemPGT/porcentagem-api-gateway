@@ -1,18 +1,17 @@
-export interface AuthUser {
-  id: string;
-  email: string;
-  roles: string[];
+export interface AuthTokenResponse {
   accessToken: string;
   refreshToken: string;
+  expiresIn: number;
 }
 
 export interface ValidateTokenResponse {
-  valid: boolean;
-  user?: AuthUser;
+  userId: string;
+  isValid: boolean;
+  expiresIn: number;
 }
 
-export type AuthResponse<T> = {
+export interface AuthResponse<T> {
   data: T;
   statusCode?: number;
   message?: string;
-};
+}
