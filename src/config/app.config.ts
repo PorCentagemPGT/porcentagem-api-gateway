@@ -8,4 +8,7 @@ export default registerAs('app', () => ({
   core: {
     url: process.env.CORE_API_URL ?? 'http://localhost:3002',
   },
+  belvo: {
+    url: process.env.BELVO_API_URL ?? 'http://localhost:3003',
+  },
 }));
