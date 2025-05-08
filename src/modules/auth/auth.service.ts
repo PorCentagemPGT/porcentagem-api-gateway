@@ -46,8 +46,13 @@ export class AuthService {
       const { password: _, ...userWithoutPassword } = userData;
 
       return userWithoutPassword;
-    } catch (error) {
-      this.logger.error(`Error validating user ${email}: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(`Error validating user ${email}: ${error.message}`);
+      } else {
+        this.logger.error(`Unknown error validating user ${email}`);
+      }
+
       throw new UnauthorizedException('Credenciais inválidas');
     }
   }
@@ -58,7 +63,6 @@ export class AuthService {
     try {
       this.logger.log(`Login operation started - userId: ${user.id}`);
 
-      // Gera tokens
       const response = await this.authProxy.post<AuthTokenResponse>(
         '/auth/login',
         { userId: user.id },
@@ -72,8 +76,13 @@ export class AuthService {
 
       this.logger.log(`Login operation completed - userId: ${user.id}`);
       return { accessToken, refreshToken, expiresIn };
-    } catch (error) {
-      this.logger.error(`Error logging in user ${user.id}: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(`Error logging in user ${user.id}: ${error.message}`);
+      } else {
+        this.logger.error(`Unknown error logging in user ${user.id}`);
+      }
+
       throw new UnauthorizedException('Erro ao gerar tokens');
     }
   }

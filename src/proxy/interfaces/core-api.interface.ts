@@ -12,3 +12,12 @@ export interface CoreResponse<T> {
   statusCode?: number;
   message?: string;
 }
+
+export interface CoreCategoryResponse {
+  id: string;
+  name: string;
+  color: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
