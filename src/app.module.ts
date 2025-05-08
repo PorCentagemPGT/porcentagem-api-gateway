@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { BelvoModule } from './modules/belvo/belvo.module';
 import { ProxyModule } from './proxy/proxy.module';
 import appConfig from './config/app.config';
+import { CategoriesModule } from './modules/core/categories/categories.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import appConfig from './config/app.config';
     AuthModule,
     BelvoModule,
     ProxyModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
