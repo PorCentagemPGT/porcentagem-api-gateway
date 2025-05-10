@@ -1,9 +1,16 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  ConflictException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { AuthProxy } from '../../proxy/auth.proxy';
-import { CoreProxy } from '../../proxy/core.proxy';
-import { AuthTokenResponse } from '../../proxy/interfaces/auth-api.interface';
-import { CoreUserResponse } from '../../proxy/interfaces/core-api.interface';
+import { UsersService } from '../core/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { CoreUserResponse } from '../../proxy/interfaces/core-api.interface';
+import { AuthTokenResponse } from '../../proxy/interfaces/auth-api.interface';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -11,7 +18,7 @@ export class AuthService {
 
   constructor(
     private readonly authProxy: AuthProxy,
-    private readonly coreProxy: CoreProxy,
+    private readonly usersService: UsersService,
   ) {}
 
   async validateUser(
@@ -19,35 +26,32 @@ export class AuthService {
     password: string,
   ): Promise<Omit<CoreUserResponse, 'password'>> {
     try {
-      this.logger.log(`Validating user - email: ${email}`);
+      this.logger.log(`User validation started - email: ${email}`);
 
-      // Busca usuário no Core API
-      const userData = await this.coreProxy.get<CoreUserResponse>(
-        `/users/email/${email}`,
-      );
+      const user = await this.usersService.findByEmail(email);
 
-      if (!userData?.email) {
-        this.logger.warn(`User not found - email: ${email}`);
+      if (!user) {
         throw new UnauthorizedException('Credenciais inválidas');
       }
 
-      this.logger.log('User found, validating password...');
-
-      // Valida senha
-      const isPasswordValid = await bcrypt.compare(password, userData.password);
+      const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
-        this.logger.warn(`Invalid password for user ${email}`);
         throw new UnauthorizedException('Credenciais inválidas');
       }
 
-      // Remove senha antes de retornar
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...userWithoutPassword } = userData;
+      const { password: _userPassword, ...result } = user;
 
-      return userWithoutPassword;
+      this.logger.log(`User validation completed - userId: ${result.id}`);
+      return result;
     } catch (error) {
-      this.logger.error(`Error validating user ${email}: ${error.message}`);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.error(
+        `Error validating user: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       throw new UnauthorizedException('Credenciais inválidas');
     }
   }
@@ -75,6 +79,67 @@ export class AuthService {
     } catch (error) {
       this.logger.error(`Error logging in user ${user.id}: ${error.message}`);
       throw new UnauthorizedException('Erro ao gerar tokens');
+    }
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    try {
+      return await bcrypt.hash(password, 10);
+    } catch (error) {
+      this.logger.error('Error hashing password');
+      throw new Error('Error hashing password');
+    }
+  }
+
+  async register(registerDto: RegisterDto): Promise<{
+    user: Omit<CoreUserResponse, 'password'>;
+    tokens: AuthTokenResponse;
+  }> {
+    try {
+      this.logger.log(`Registration started - email: ${registerDto.email}`);
+
+      // Verifica se email já existe
+      const existingUser = await this.usersService.findByEmail(
+        registerDto.email,
+      );
+
+      if (existingUser) {
+        this.logger.warn(`Email already in use: ${registerDto.email}`);
+        throw new ConflictException('Email já está em uso');
+      }
+
+      // Hash da senha
+      const hashedPassword = await this.hashPassword(registerDto.password);
+
+      // Cria usuário
+      const user = await this.usersService
+        .create({
+          ...registerDto,
+          password: hashedPassword,
+        })
+        .catch((error) => {
+          this.logger.error(
+            `Error creating user: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          );
+          throw new InternalServerErrorException('Erro ao criar usuário');
+        });
+
+      // Gera tokens
+      const tokens = await this.login(user);
+
+      this.logger.log(`Registration completed - userId: ${user.id}`);
+      return { user, tokens };
+    } catch (error) {
+      if (
+        error instanceof ConflictException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error;
+      }
+      this.logger.error(
+        `Error registering user: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new InternalServerErrorException('Erro ao registrar usuário');
     }
   }
 }
