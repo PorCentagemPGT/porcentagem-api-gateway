@@ -1,9 +1,20 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Headers,
+  HttpCode,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ApiBearerAuthWithDocs } from './decorators/api-bearer-auth.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthService } from './auth.service';
-import { AuthTokenResponse } from '../../proxy/interfaces/auth-api.interface';
+import {
+  AuthTokenResponse,
+  LogoutResponse,
+} from '../../proxy/interfaces/auth-api.interface';
 import { CoreUserResponse } from '../../proxy/interfaces/core-api.interface';
 
 @ApiTags('Autenticação')
@@ -55,5 +66,30 @@ export class AuthController {
   }> {
     const { user, tokens } = await this.authService.register(registerDto);
     return { user, tokens };
+  }
+
+  @Post('logout')
+  @HttpCode(204)
+  @ApiBearerAuthWithDocs()
+  @ApiOperation({
+    summary: 'Logout',
+    description: 'Invalida o token de acesso do usuário',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Logout realizado com sucesso',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token inválido',
+  })
+  async logout(
+    @Headers('authorization') auth: string | undefined,
+  ): Promise<LogoutResponse> {
+    const token = auth?.replace('Bearer ', '');
+    if (!token) {
+      throw new UnauthorizedException('Token não fornecido');
+    }
+    return await this.authService.logout(token);
   }
 }

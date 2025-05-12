@@ -9,7 +9,10 @@ import { AuthProxy } from '../../proxy/auth.proxy';
 import { UsersService } from '../core/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { CoreUserResponse } from '../../proxy/interfaces/core-api.interface';
-import { AuthTokenResponse } from '../../proxy/interfaces/auth-api.interface';
+import {
+  AuthTokenResponse,
+  LogoutResponse,
+} from '../../proxy/interfaces/auth-api.interface';
 import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
@@ -140,6 +143,30 @@ export class AuthService {
         `Error registering user: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       throw new InternalServerErrorException('Erro ao registrar usuário');
+    }
+  }
+
+  async logout(token: string): Promise<LogoutResponse> {
+    try {
+      this.logger.log('Logout started');
+
+      const response = await this.authProxy.post<LogoutResponse>(
+        '/auth/logout',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      this.logger.log(`Logout completed - sessionId: ${response.sessionId}`);
+      return response;
+    } catch (error) {
+      this.logger.error(
+        `Error during logout: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new InternalServerErrorException('Erro ao realizar logout');
     }
   }
 }

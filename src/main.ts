@@ -22,7 +22,17 @@ async function bootstrap() {
     .setTitle('PorCentagem API Gateway')
     .setDescription('Gateway para os serviços do PorCentagem')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        description: 'Insira o access token JWT',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

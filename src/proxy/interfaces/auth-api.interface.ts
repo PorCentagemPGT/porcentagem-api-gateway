@@ -1,3 +1,9 @@
+export interface LogoutResponse {
+  message: string;
+  sessionId: string;
+  logoutTime: string;
+}
+
 export interface AuthTokenResponse {
   accessToken: string;
   refreshToken: string;
