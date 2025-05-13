@@ -24,8 +24,12 @@ export class CoreProxy {
    * @param data - Dados opcionais para o body da requisição
    * @param config - Configurações adicionais do Axios
    */
-  async get<T>(path: string, data?: unknown, config?: HttpConfig): Promise<T> {
-    return this.forward<T>('GET', path, data, config);
+  async get<T>(
+    path: string,
+    data?: unknown,
+    config?: HttpConfig,
+  ): Promise<T | null> {
+    return this.forward<T>('GET', path, data, config, true);
   }
 
   /**
@@ -35,7 +39,8 @@ export class CoreProxy {
    * @param config - Configurações adicionais do Axios
    */
   async post<T>(path: string, data: unknown, config?: HttpConfig): Promise<T> {
-    return this.forward<T>('POST', path, data, config);
+    const result = await this.forward<T>('POST', path, data, config);
+    return result as T;
   }
 
   /**
@@ -45,7 +50,8 @@ export class CoreProxy {
    * @param config - Configurações adicionais do Axios
    */
   async put<T>(path: string, data: unknown, config?: HttpConfig): Promise<T> {
-    return this.forward<T>('PUT', path, data, config);
+    const result = await this.forward<T>('PUT', path, data, config);
+    return result as T;
   }
 
   /**
@@ -54,7 +60,8 @@ export class CoreProxy {
    * @param config - Configurações adicionais do Axios
    */
   async delete<T>(path: string, config?: HttpConfig): Promise<T> {
-    return this.forward<T>('DELETE', path, undefined, config);
+    const result = await this.forward<T>('DELETE', path, undefined, config);
+    return result as T;
   }
 
   /**
@@ -64,7 +71,8 @@ export class CoreProxy {
    * @param config - Configurações adicionais do Axios
    */
   async patch<T>(path: string, data: unknown, config?: HttpConfig): Promise<T> {
-    return this.forward<T>('PATCH', path, data, config);
+    const result = await this.forward<T>('PATCH', path, data, config);
+    return result as T;
   }
 
   /**
@@ -76,7 +84,8 @@ export class CoreProxy {
     path: string,
     data?: unknown,
     config?: HttpConfig,
-  ): Promise<T> {
+    allowNull = false,
+  ): Promise<T | null> {
     try {
       const { data: response } = await firstValueFrom(
         this.http.request<T>({
@@ -89,14 +98,23 @@ export class CoreProxy {
 
       return response;
     } catch (error) {
-      this.logger.error(
-        `Core API error: ${(error as Error).message}`,
-        error instanceof AxiosError ? error.response?.data : undefined,
-      );
-
       if (error instanceof AxiosError) {
+        // Log do erro com nível apropriado
+        const logLevel = error.response?.status === 404 ? 'debug' : 'error';
+        this.logger[logLevel](
+          `Core API ${error.response?.status === 404 ? 'not found' : 'error'}: ${error.message}`,
+          error.response?.data,
+        );
+
+        // Retorna null para 404 apenas se permitido
+        if (error.response?.status === 404 && allowNull) {
+          return null;
+        }
         throw error.response?.data ?? error;
       }
+
+      // Log e lançamento de outros tipos de erro
+      this.logger.error(`Core API error: ${(error as Error).message}`);
       throw error;
     }
   }
