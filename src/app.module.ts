@@ -2,11 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { BelvoModule } from './modules/belvo/belvo.module';
 import { ProxyModule } from './proxy/proxy.module';
+import { CoreModule } from './modules/core/core.module';
+import { AuthModule } from './modules/auth/auth.module';
 import appConfig from './config/app.config';
-import { CategoriesModule } from './modules/core/categories/categories.module';
 
 @Module({
   imports: [
@@ -14,12 +13,11 @@ import { CategoriesModule } from './modules/core/categories/categories.module';
       isGlobal: true,
       load: [appConfig],
     }),
-    AuthModule,
-    BelvoModule,
     ProxyModule,
-    CategoriesModule,
+    CoreModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
