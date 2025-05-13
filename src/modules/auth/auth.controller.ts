@@ -5,15 +5,18 @@ import {
   Headers,
   HttpCode,
   UnauthorizedException,
+  Get,
 } from '@nestjs/common';
 import { ApiBearerAuthWithDocs } from './decorators/api-bearer-auth.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ValidateTokenDto } from './dto/validate-token.dto';
 import { AuthService } from './auth.service';
 import {
   AuthTokenResponse,
   LogoutResponse,
+  ValidateTokenResponse,
 } from '../../proxy/interfaces/auth-api.interface';
 import { CoreUserResponse } from '../../proxy/interfaces/core-api.interface';
 
@@ -91,5 +94,40 @@ export class AuthController {
       throw new UnauthorizedException('Token não fornecido');
     }
     return await this.authService.logout(token);
+  }
+
+  @Get('validate')
+  @ApiBearerAuthWithDocs()
+  @ApiOperation({
+    summary: 'Validar token',
+    description: `
+      Endpoint para validar um token JWT.
+      Retorna informações sobre a validade do token, incluindo:
+      - ID do usuário dono do token
+      - Se o token é válido
+      - Tempo restante de validade em segundos
+      
+      Útil para verificar se um token ainda é válido antes de
+      fazer uma requisição que o utilize.
+    `,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token validado com sucesso',
+    type: ValidateTokenDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token inválido ou expirado',
+  })
+  async validate(
+    @Headers('authorization') auth: string | undefined,
+  ): Promise<ValidateTokenResponse> {
+    console.log(`🚀 ~ auth:`, auth);
+    if (!auth) {
+      throw new UnauthorizedException('Token não fornecido');
+    }
+
+    return await this.authService.validateToken(auth);
   }
 }

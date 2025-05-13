@@ -12,6 +12,7 @@ import { CoreUserResponse } from '../../proxy/interfaces/core-api.interface';
 import {
   AuthTokenResponse,
   LogoutResponse,
+  ValidateTokenResponse,
 } from '../../proxy/interfaces/auth-api.interface';
 import { RegisterDto } from './dto/register.dto';
 
@@ -167,6 +168,33 @@ export class AuthService {
         `Error during logout: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       throw new InternalServerErrorException('Erro ao realizar logout');
+    }
+  }
+
+  async validateToken(authHeader: string): Promise<ValidateTokenResponse> {
+    try {
+      this.logger.log('Token validation started');
+
+      const response = await this.authProxy.get<ValidateTokenResponse>(
+        '/auth/validate',
+        undefined,
+        {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      );
+
+      this.logger.log(
+        `Token validation completed - userId: ${response.userId}, valid: ${response.isValid}`,
+      );
+
+      return response;
+    } catch (error) {
+      this.logger.error(
+        `Error validating token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new UnauthorizedException('Token inválido');
     }
   }
 }
