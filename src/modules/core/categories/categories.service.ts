@@ -6,7 +6,7 @@ import { CoreCategoryResponse } from 'src/proxy/interfaces/core-api.interface';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly coreProxy: CoreProxy) { }
+  constructor(private readonly coreProxy: CoreProxy) {}
 
   async create(
     createCategoryDto: CreateCategoryDto,
@@ -17,11 +17,11 @@ export class CategoriesService {
     );
   }
 
-  async findAll(): Promise<CoreCategoryResponse[]> {
+  async findAll(): Promise<CoreCategoryResponse[] | null> {
     return this.coreProxy.get<CoreCategoryResponse[]>('/categories');
   }
 
-  async findOne(id: string): Promise<CoreCategoryResponse> {
+  async findOne(id: string): Promise<CoreCategoryResponse | null> {
     return this.coreProxy.get<CoreCategoryResponse>(`/categories/${id}`);
   }
 
