@@ -98,6 +98,11 @@ export class BelvoProxy {
     config?: HttpConfig,
   ): Promise<BelvoResponse<T>> {
     try {
+      this.logger.log(`Forwarding request to Belvo API: ${path}`);
+      this.logger.log(`Request data: ${JSON.stringify(data)}`);
+      this.logger.log(`Request config: ${JSON.stringify(config)}`);
+      this.logger.log(`Request method: ${method}`);
+      this.logger.log(`Request URL: ${this.apiUrl}${path}`);
       const { data: response } = await firstValueFrom(
         this.http.request<BelvoResponse<T>>({
           method,

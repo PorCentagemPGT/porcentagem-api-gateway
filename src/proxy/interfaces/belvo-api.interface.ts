@@ -28,8 +28,9 @@ export interface BelvoTransaction {
   valueDate: string;
 }
 
-export type BelvoResponse<T> = {
+export interface BelvoResponse<T> {
+  token: string | PromiseLike<string>;
   data: T;
   statusCode?: number;
   message?: string;
-};
+}
