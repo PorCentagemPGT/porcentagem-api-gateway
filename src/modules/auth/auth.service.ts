@@ -94,7 +94,7 @@ export class AuthService {
     try {
       return await bcrypt.hash(password, 10);
     } catch (error) {
-      this.logger.error('Error hashing password');
+      this.logger.error(`Error hashing password: ${(error as Error).message}`);
       throw new Error('Error hashing password');
     }
   }
