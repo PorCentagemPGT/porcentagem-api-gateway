@@ -8,6 +8,11 @@ import {
 import { BelvoProxy } from '../../proxy/belvo.proxy';
 import { CoreProxy } from '../../proxy/core.proxy';
 import { LinkAccountDto, LinkAccountResponseDto } from './dto/link-account.dto';
+import {
+  BankAccountRequestDto,
+  BankAccountResponseDto,
+} from './dto/bank-account.dto';
+import { ListBelvoAccountsResponseDto } from './dto/list-belvo-accounts.dto';
 
 @Injectable()
 export class BelvoService {
@@ -36,6 +41,69 @@ export class BelvoService {
         }`,
       );
       throw new UnauthorizedException('Falha ao gerar token do widget Belvo');
+    }
+  }
+
+  async listBelvoAccounts(
+    linkId: string,
+  ): Promise<ListBelvoAccountsResponseDto[]> {
+    try {
+      this.logger.log(`Listing Belvo accounts for link ${linkId}`);
+
+      const { data } = await this.belvoProxy.get<
+        ListBelvoAccountsResponseDto[]
+      >(`/accounts/belvo/${linkId}`);
+
+      this.logger.debug(`Belvo accounts response: ${JSON.stringify(data)}`);
+      return data;
+    } catch (error) {
+      this.logger.error(
+        `Error listing Belvo accounts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new BadRequestException('Falha ao listar contas do Belvo');
+    }
+  }
+
+  async listUserAccounts(userId: string): Promise<LinkAccountResponseDto[]> {
+    try {
+      this.logger.log(`Listing accounts for user ${userId}`);
+
+      const { data } = await this.belvoProxy.get<LinkAccountResponseDto[]>(
+        `/accounts/link/${userId}`,
+      );
+
+      this.logger.debug(`User accounts response: ${JSON.stringify(data)}`);
+      return data;
+    } catch (error) {
+      this.logger.error(
+        `Error listing user accounts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new BadRequestException('Falha ao listar contas do usuário');
+    }
+  }
+
+  async createBankAccount(
+    bankAccountRequestDto: BankAccountRequestDto,
+  ): Promise<{ data: BankAccountResponseDto }> {
+    try {
+      this.logger.log(
+        `Creating bank account for link ${bankAccountRequestDto.linkId}`,
+      );
+
+      const responseData = await this.belvoProxy.post<BankAccountResponseDto>(
+        '/accounts/bank',
+        bankAccountRequestDto,
+      );
+
+      this.logger.debug(
+        `Bank account response: ${JSON.stringify(responseData)}`,
+      );
+      return responseData;
+    } catch (error) {
+      this.logger.error(
+        `Error creating bank account: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new BadRequestException('Falha ao criar conta bancária');
     }
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BelvoService } from './belvo.service';
 import {
@@ -6,6 +6,11 @@ import {
   WidgetTokenErrorResponseDto,
 } from './dto/widget-token.dto';
 import { LinkAccountDto, LinkAccountResponseDto } from './dto/link-account.dto';
+import {
+  BankAccountRequestDto,
+  BankAccountResponseDto,
+} from './dto/bank-account.dto';
+import { ListBelvoAccountsResponseDto } from './dto/list-belvo-accounts.dto';
 
 @ApiTags('Belvo Integration')
 @Controller('belvo')
@@ -66,5 +71,69 @@ export class BelvoController {
     @Body() data: LinkAccountDto,
   ): Promise<LinkAccountResponseDto> {
     return this.belvoService.linkAccount(data);
+  }
+
+  @Get('accounts/:userId')
+  @ApiOperation({
+    summary: 'Listar contas vinculadas',
+    description: 'Lista todas as contas vinculadas ao usuário',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Contas listadas com sucesso',
+    type: [LinkAccountResponseDto],
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro ao listar contas',
+    type: WidgetTokenErrorResponseDto,
+  })
+  async listUserAccounts(
+    @Param('userId') userId: string,
+  ): Promise<LinkAccountResponseDto[]> {
+    return this.belvoService.listUserAccounts(userId);
+  }
+
+  @Get('accounts/belvo/:linkId')
+  @ApiOperation({
+    summary: 'Listar contas do Belvo',
+    description: 'Lista todas as contas do Belvo para um determinado link',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Contas listadas com sucesso',
+    type: [ListBelvoAccountsResponseDto],
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro ao listar contas',
+    type: WidgetTokenErrorResponseDto,
+  })
+  async listBelvoAccounts(
+    @Param('linkId') linkId: string,
+  ): Promise<ListBelvoAccountsResponseDto[]> {
+    return this.belvoService.listBelvoAccounts(linkId);
+  }
+
+  @Post('accounts/bank')
+  @ApiOperation({
+    summary: 'Registrar conta bancária',
+    description: 'Registra uma nova conta bancária para um link',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Conta registrada com sucesso',
+    type: BankAccountResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro ao registrar conta',
+    type: WidgetTokenErrorResponseDto,
+  })
+  async createBankAccount(
+    @Body() data: BankAccountRequestDto,
+  ): Promise<{ data: BankAccountResponseDto }> {
+    console.log(`Creating bank account for link ${data.linkId}`);
+    return this.belvoService.createBankAccount(data);
   }
 }
