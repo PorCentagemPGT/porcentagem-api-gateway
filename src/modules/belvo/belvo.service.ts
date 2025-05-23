@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { BelvoProxy } from '../../proxy/belvo.proxy';
 import { CoreProxy } from '../../proxy/core.proxy';
-import { BelvoResponse } from '../../proxy/interfaces/belvo-api.interface';
 import { LinkAccountDto, LinkAccountResponseDto } from './dto/link-account.dto';
 
 @Injectable()
