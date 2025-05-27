@@ -6,6 +6,7 @@ import {
   HttpCode,
   UnauthorizedException,
   Get,
+  Logger,
 } from '@nestjs/common';
 import { ApiBearerAuthWithDocs } from './decorators/api-bearer-auth.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -23,6 +24,8 @@ import { CoreUserResponse } from '../../proxy/interfaces/core-api.interface';
 @ApiTags('Autenticação')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
@@ -42,11 +45,14 @@ export class AuthController {
     user: Omit<CoreUserResponse, 'password'>;
     tokens: AuthTokenResponse;
   }> {
+    this.logger.debug(`Login operation started - email: ${loginDto.email}`);
     const user = await this.authService.validateUser(
       loginDto.email,
       loginDto.password,
     );
+    this.logger.debug(`User validated - userId: ${user.id}`);
     const tokens = await this.authService.login(user);
+    this.logger.debug(`Login operation completed - userId: ${user.id}`);
     return { user, tokens };
   }
 
