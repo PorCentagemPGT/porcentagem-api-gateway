@@ -6,7 +6,7 @@ WORKDIR /app
 # Copia apenas os arquivos necessários para instalar as dependências e gerar o Prisma Client
 COPY package*.json ./
 
-RUN npm i
+RUN npm ci
 
 
 # Copia o restante do código e compila a aplicação
