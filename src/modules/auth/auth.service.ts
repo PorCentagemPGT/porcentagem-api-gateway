@@ -33,12 +33,15 @@ export class AuthService {
       this.logger.log(`User validation started - email: ${email}`);
 
       const user = await this.usersService.findByEmail(email);
+      this.logger.log(`User validated - userId: ${user.id}`);
 
       if (!user) {
         throw new UnauthorizedException('Credenciais inválidas');
       }
 
+      this.logger.debug(`Password validation started - userId: ${user.id}`);
       const isPasswordValid = await bcrypt.compare(password, user.password);
+      this.logger.debug(`Password validated - userId: ${user.id}`);
 
       if (!isPasswordValid) {
         throw new UnauthorizedException('Credenciais inválidas');
