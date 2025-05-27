@@ -27,8 +27,6 @@ COPY --from=builder /app/node_modules ./node_modules
 # Prisma Client gerado e dependências já estão prontos
 # (não precisa rodar npm install novamente)
 
-RUN npm rebuild bcrypt --build-from-source --omit=dev
-
 EXPOSE 8080
 
 CMD ["node", "dist/main"]
