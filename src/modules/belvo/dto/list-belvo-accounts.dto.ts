@@ -11,38 +11,57 @@ export class ListBelvoAccountsRequestDto {
 export class ListBelvoAccountsResponseDto {
   @ApiProperty({
     description: 'ID da conta no Belvo',
+    example: 'f9beb63c-e385-4cc2-899c-36976990faf1',
   })
   id: string;
 
   @ApiProperty({
     description: 'ID do link no Belvo',
+    example: 'f9beb63c-e385-4cc2-899c-36976990faf1',
   })
   link: string;
 
   @ApiProperty({
-    description: 'ID da conta no Belvo',
+    description: 'Número da conta',
+    example: '4835 None5744',
   })
-  bankAccountId: string;
+  number: string;
 
   @ApiProperty({
-    description: 'Nome da instituição',
+    description: 'Informações da instituição',
+    example: {
+      name: 'Banco do Brasil',
+      type: 'bank',
+    },
   })
-  institution: string;
+  institution: {
+    name: string;
+    type: string;
+  };
 
   @ApiProperty({
     description: 'Categoria da conta',
+    example: 'CREDIT_CARD',
   })
   category: string;
 
   @ApiProperty({
     description: 'Tipo da conta',
+    example: 'Contas',
   })
   type: string;
 
   @ApiProperty({
     description: 'Nome da conta',
+    example: 'Cartão crédito visa gold',
   })
   name: string;
+
+  @ApiProperty({
+    description: 'Status da conta',
+    example: 'enabled',
+  })
+  status: string;
 
   constructor(partial: Partial<ListBelvoAccountsResponseDto>) {
     Object.assign(this, partial);

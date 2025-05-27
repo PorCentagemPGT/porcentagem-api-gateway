@@ -28,12 +28,36 @@ export class BankAccountRequestDto {
   bankAccountId: string;
 
   @ApiProperty({
-    description: 'Nome da instituição',
-    example: 'Banco do Brasil',
+    description: 'Categoria da conta',
+    example: 'CREDIT_CARD',
   })
   @IsString()
   @IsNotEmpty()
-  institutionName: string;
+  category: string;
+
+  @ApiProperty({
+    description: 'Tipo da conta',
+    example: 'Contas',
+  })
+  @IsString()
+  @IsNotEmpty()
+  type: string;
+
+  @ApiProperty({
+    description: 'Número da conta',
+    example: '4835 None5744',
+  })
+  @IsString()
+  @IsNotEmpty()
+  number: string;
+
+  @ApiProperty({
+    description: 'Nome da conta',
+    example: 'Cartão crédito visa gold',
+  })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 }
 
 export class BankAccountResponseDto {
@@ -58,9 +82,34 @@ export class BankAccountResponseDto {
   bankAccountId: string;
 
   @ApiProperty({
-    description: 'Nome da instituição',
+    description: 'Categoria da conta',
+    example: 'CREDIT_CARD',
   })
-  institutionName: string;
+  category: string;
+
+  @ApiProperty({
+    description: 'Tipo da conta',
+    example: 'Contas',
+  })
+  type: string;
+
+  @ApiProperty({
+    description: 'Número da conta',
+    example: '4835 None5744',
+  })
+  number: string;
+
+  @ApiProperty({
+    description: 'Nome da conta',
+    example: 'Cartão crédito visa gold',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: 'Status da conta',
+    example: 'enabled',
+  })
+  status: string;
 
   @ApiProperty({
     description: 'Data de criação',

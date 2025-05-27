@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { BelvoProxy } from '../../proxy/belvo.proxy';
+import { AccountStatus } from './types/account-status.enum';
 import { CoreProxy } from '../../proxy/core.proxy';
 import { LinkAccountDto, LinkAccountResponseDto } from './dto/link-account.dto';
 import {
@@ -61,6 +62,43 @@ export class BelvoService {
         `Error listing Belvo accounts: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       throw new BadRequestException('Falha ao listar contas do Belvo');
+    }
+  }
+
+  async unlinkBank(linkId: string): Promise<LinkAccountResponseDto> {
+    try {
+      this.logger.log(`Removing bank link ${linkId}`);
+
+      interface UnlinkResponse {
+        data: LinkAccountResponseDto;
+      }
+
+      const response = await this.belvoProxy.delete<UnlinkResponse>(
+        `/accounts/link/${linkId}`,
+      );
+
+      this.logger.log('Bank link removed successfully');
+      this.logger.debug(`Response: ${JSON.stringify(response.data)}`);
+
+      return response.data.data;
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error removing bank link: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'status' in error.response &&
+        error.response.status === 404
+      ) {
+        throw new NotFoundException('Link não encontrado');
+      }
+
+      throw new BadRequestException('Falha ao remover link do banco');
     }
   }
 
@@ -141,6 +179,10 @@ export class BelvoService {
       this.logger.log(`Account linked successfully for user ${data.userId}`);
       this.logger.debug(`Link response: ${JSON.stringify(response)}`);
 
+      await this.listAndCreateAccounts(data.linkId, data.userId);
+
+      this.logger.log(`Accounts created successfully for user ${data.userId}`);
+
       return new LinkAccountResponseDto({
         id: response.data.id,
         linkId: response.data.linkId,
@@ -156,6 +198,115 @@ export class BelvoService {
         `Error linking account: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       throw new BadRequestException('Falha ao linkar conta');
+    }
+  }
+
+  async listBankAccountsByUserId(
+    userId: string,
+  ): Promise<BankAccountResponseDto[]> {
+    try {
+      this.logger.log(`Listing bank accounts for user ${userId}`);
+
+      const { data } = await this.belvoProxy.get<BankAccountResponseDto[]>(
+        `/accounts/bank/userId/${userId}`,
+      );
+
+      this.logger.debug(`Bank accounts response: ${JSON.stringify(data)}`);
+      return data;
+    } catch (error) {
+      this.logger.error(
+        `Error listing bank accounts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new BadRequestException('Falha ao listar contas bancárias');
+    }
+  }
+
+  async listBankAccountsByLinkId(
+    linkId: string,
+  ): Promise<BankAccountResponseDto[]> {
+    try {
+      this.logger.log(`Listing bank accounts for link ${linkId}`);
+
+      const { data } = await this.belvoProxy.get<BankAccountResponseDto[]>(
+        `/accounts/bank/linkId/${linkId}`,
+      );
+
+      this.logger.debug(`Bank accounts response: ${JSON.stringify(data)}`);
+      return data;
+    } catch (error) {
+      this.logger.error(
+        `Error listing bank accounts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new BadRequestException('Falha ao listar contas bancárias');
+    }
+  }
+
+  async updateBankAccounts(data: {
+    accounts: { id: string; status: AccountStatus }[];
+  }): Promise<{ data: BankAccountResponseDto[] }> {
+    const mappedAccounts = data.accounts.map((account) => ({
+      id: account.id,
+      status: account.status === AccountStatus.ACTIVE ? 'enabled' : 'disabled',
+    }));
+    try {
+      this.logger.log(`Updating ${data.accounts.length} accounts in batch`);
+
+      const response = await this.belvoProxy.patch<{
+        data: BankAccountResponseDto[];
+      }>('/accounts/batch', { accounts: mappedAccounts });
+
+      this.logger.debug(`Batch update response: ${JSON.stringify(response)}`);
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        `Error updating accounts in batch: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new BadRequestException('Falha ao atualizar contas bancárias');
+    }
+  }
+
+  async listAndCreateAccounts(linkId: string, userId: string): Promise<void> {
+    try {
+      this.logger.log(`Listing and creating accounts for link ${linkId}`);
+
+      const accounts = await this.listBelvoAccounts(linkId);
+
+      const accountsAlreadyCreated =
+        await this.listBankAccountsByLinkId(linkId);
+
+      for (const account of accounts) {
+        try {
+          if (
+            accountsAlreadyCreated.some((a) => a.bankAccountId === account.id)
+          ) {
+            this.logger.log(`Bank account ${account.id} already created`);
+            continue;
+          }
+          this.logger.log(`Creating bank account ${JSON.stringify(account)}`);
+
+          await this.createBankAccount({
+            userId,
+            linkId,
+            category: account.category,
+            type: account.type,
+            number: account.number,
+            name: account.name,
+            bankAccountId: account.id,
+          });
+          this.logger.log(`Created bank account ${account.id} successfully`);
+        } catch (error) {
+          this.logger.error(
+            `Error creating bank account ${account.id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          );
+          // Continuar criando outras contas mesmo se uma falhar
+          continue;
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error listing and creating accounts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      throw new BadRequestException('Falha ao listar e criar contas');
     }
   }
 }
