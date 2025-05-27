@@ -33,7 +33,7 @@ export class AuthService {
       this.logger.log(`User validation started - email: ${email}`);
 
       const user = await this.usersService.findByEmail(email);
-      this.logger.log(`User validated - userId: ${user.id}`);
+      this.logger.debug(`User validated - userId: ${user?.id}`);
 
       if (!user) {
         throw new UnauthorizedException('Credenciais inválidas');
