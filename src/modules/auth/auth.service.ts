@@ -114,13 +114,19 @@ export class AuthService {
         registerDto.email,
       );
 
+      this.logger.debug(`Fetched user - userId: ${existingUser?.id}`);
+
       if (existingUser) {
         this.logger.warn(`Email already in use: ${registerDto.email}`);
         throw new ConflictException('Email já está em uso');
       }
 
+      this.logger.debug(`No user found - email: ${registerDto.email}`);
+
       // Hash da senha
       const hashedPassword = await this.hashPassword(registerDto.password);
+
+      this.logger.debug(`Password hashed - email: ${registerDto.email}`);
 
       // Cria usuário
       const user = await this.usersService
